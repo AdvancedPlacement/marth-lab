@@ -1,0 +1,675 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2D3816">
+<meta name="description" content="AP's Marth coaching app: matchup gameplans, scouting, drills, set reviews.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+body{margin:0;font:14px system-ui,-apple-system,sans-serif}
+img{max-width:100%}
+[hidden]{display:none!important}
+</style>
+<title>AP Marth Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans:wght@400;500;600&family=Saira+Condensed:ital,wght@0,600;0,800;1,800&display=swap">
+<style>
+/* Layout: one-thumb phone app. Sticky header, scrolling view, bottom tab bar. Melee-HUD italic numerals for every percent. */
+:root{
+  --bg:#ECEDE2; --surface:#F9F9F2; --ink:#1F2414; --muted:#5E6450; --line:#D3D5BF;
+  --accent:#55692B; --accent-ink:#F9F9F2; --gold:#9C7414;
+  --red:#B5402F; --amber:#B7791F; --green:#2E8656; --chip:#E1E3CF;
+  --display:"Saira Condensed","Arial Narrow",system-ui,sans-serif;
+  --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#14170D; --surface:#1D2114; --ink:#ECEBD9; --muted:#A3A68C; --line:#30351E;
+  --accent:#A8BA62; --accent-ink:#14170D; --gold:#DDB548;
+  --red:#EE7462; --amber:#F2B84B; --green:#5CC08A; --chip:#272C19; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#14170D; --surface:#1D2114; --ink:#ECEBD9; --muted:#A3A68C; --line:#30351E;
+  --accent:#A8BA62; --accent-ink:#14170D; --gold:#DDB548;
+  --red:#EE7462; --amber:#F2B84B; --green:#5CC08A; --chip:#272C19; color-scheme:dark}
+/* Mode palettes: Forest follows the system theme; Water is always deep ocean, Mist always pale sky */
+html:root[data-mode="water"]{
+  --bg:#0A1A2A; --surface:#10243A; --ink:#E4EEF7; --muted:#8FA6BD; --line:#1F3A55;
+  --accent:#4FA3D9; --accent-ink:#0A1A2A; --gold:#7FD3DA;
+  --red:#F07C6E; --amber:#F2B84B; --green:#5CC08A; --chip:#16304A; color-scheme:dark}
+html:root[data-mode="mist"]{
+  --bg:#E8F2FA; --surface:#F7FBFE; --ink:#16283A; --muted:#55708A; --line:#C8DBEA;
+  --accent:#3A7FC0; --accent-ink:#F7FBFE; --gold:#2A6699;
+  --red:#B5402F; --amber:#A86E14; --green:#2E8656; --chip:#D8E8F4; color-scheme:light}
+body{transition:background-color .25s ease,color .25s ease}
+@media (prefers-reduced-motion:reduce){body{transition:none}}
+.brand{color:var(--gold)}
+.pocket{border-color:var(--gold)!important}
+
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5;-webkit-tap-highlight-color:transparent}
+.app{max-width:640px;margin:0 auto;min-height:100%;display:flex;flex-direction:column}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding:12px 16px 10px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px}
+.brand{font-family:var(--display);font-weight:800;font-style:italic;font-size:24px;letter-spacing:.01em;line-height:1;flex:1;min-width:0}
+.brand small{display:block;font-family:var(--mono);font-style:normal;font-weight:500;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-top:4px}
+.mode{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:6px 12px 6px 10px;font:600 13px var(--body);display:flex;align-items:center;gap:7px;cursor:pointer}
+.mode i{width:10px;height:10px;border-radius:50%;background:var(--mc,var(--green))}
+main{flex:1;padding:16px 16px 110px;display:flex;flex-direction:column;gap:16px}
+nav{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
+nav .in{max-width:640px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr)}
+nav button{background:none;border:0;color:var(--muted);padding:10px 2px 12px;font:600 11.5px var(--body);letter-spacing:.04em;text-transform:uppercase;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer}
+nav button svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+nav button[aria-current="true"]{color:var(--accent)}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+h2{font-family:var(--display);font-weight:800;font-style:italic;font-size:30px;line-height:1.05;margin:0;text-wrap:balance}
+h3{font:600 11.5px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:0 0 8px}
+p{margin:0}
+ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px}
+li::marker{color:var(--accent)}
+.muted{color:var(--muted)}
+.sec{display:flex;flex-direction:column;gap:10px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{flex:1 0 auto;text-align:center;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:10px;padding:8px 14px;font:600 14px var(--body);cursor:pointer;white-space:nowrap}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.theme-line{font-size:17px;line-height:1.45;font-weight:500}
+.pct{font-family:var(--display);font-style:italic;font-weight:800;color:var(--gold);font-variant-numeric:tabular-nums}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:460px){.split{grid-template-columns:1fr}}
+.split>div{min-width:0}
+.tag{display:inline-block;font:600 10.5px var(--mono);letter-spacing:.1em;text-transform:uppercase;padding:2px 7px;border-radius:5px;background:var(--chip);color:var(--muted)}
+.pocket{border:2px solid var(--accent);border-radius:14px;padding:14px 16px;background:var(--surface)}
+.pocket ol{margin:0;padding-left:0;list-style:none;display:flex;flex-direction:column;gap:8px;counter-reset:p}
+.pocket li{counter-increment:p;display:flex;gap:10px;font-weight:500}
+.pocket li::before{content:counter(p);font-family:var(--display);font-style:italic;font-weight:800;color:var(--accent);font-size:20px;line-height:1.1;min-width:14px}
+details{border-top:1px solid var(--line)}
+details:first-of-type{border-top:0}
+summary{list-style:none;cursor:pointer;padding:12px 0;display:flex;justify-content:space-between;align-items:center;gap:10px;font-weight:600}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";font:500 18px var(--mono);color:var(--muted)}
+details[open] summary::after{content:"–"}
+details>div{padding-bottom:14px}
+.kh{margin:14px 0 8px;color:var(--accent)}
+details>div>.kh:first-child{margin-top:0}
+.kl li{font-size:14.5px}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;background:var(--chip);border-radius:11px;padding:4px}
+.seg button{border:0;background:none;color:var(--muted);border-radius:8px;padding:8px 4px;font:600 14px var(--body);display:flex;align-items:center;justify-content:center;gap:7px;cursor:pointer}
+.seg button i{width:9px;height:9px;border-radius:50%;flex:none}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.15)}
+.quote{font-family:var(--display);font-weight:600;font-size:19px;line-height:1.25;color:var(--ink);border-left:3px solid var(--gold);padding-left:12px}
+input,select,textarea{width:100%;font:15px var(--body);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:9px 11px;box-sizing:border-box}
+textarea{min-height:72px;resize:vertical}
+label{display:flex;flex-direction:column;gap:4px;font:600 12px var(--body);color:var(--muted);min-width:0}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.row>*{flex:1 1 120px}
+.btn{border:0;border-radius:10px;padding:11px 16px;font:600 15px var(--body);cursor:pointer;background:var(--accent);color:var(--accent-ink)}
+.btn.ghost{background:var(--chip);color:var(--ink)}
+.btn.small{padding:6px 10px;font-size:13px}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font:600 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+td.n{text-align:right}
+.scroll{overflow-x:auto;margin-inline:-4px}
+.timer{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.clock{font-family:var(--display);font-style:italic;font-weight:800;font-size:52px;line-height:1;font-variant-numeric:tabular-nums;min-width:150px}
+.drill{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-top:1px solid var(--line)}
+.drill:first-child{border-top:0}
+.drill .t{flex:1;min-width:0}
+.drill .t b{display:block}
+.drill .m{text-align:right;flex:none}
+.drill .m .pct{font-size:22px;color:var(--ink)}
+.stat3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stat3>div{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.stat3 .pct{font-size:30px;line-height:1;display:block;color:var(--ink)}
+.stat3 small{font:600 10.5px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.rate{display:flex;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}
+.rate:first-child{border-top:0}
+.rate span{flex:1;min-width:0}
+.dot{flex:none;width:76px;border:0;border-radius:999px;padding:5px 0;font:600 12px var(--body);cursor:pointer;color:#fff}
+.dot[data-r="red"]{background:var(--red)} .dot[data-r="yellow"]{background:var(--amber)} .dot[data-r="green"]{background:var(--green)} .dot[data-r=""]{background:var(--chip);color:var(--muted)}
+.hist{display:flex;flex-direction:column;gap:2px}
+.hist .h{padding:12px 0;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:6px}
+.hist .h:first-child{border-top:0}
+.pips{display:flex;gap:4px}
+.pips i{width:10px;height:10px;border-radius:3px}
+.pips i.red{background:var(--red)}.pips i.yellow{background:var(--amber)}.pips i.green{background:var(--green)}
+.res-W{color:var(--green);font-weight:700}.res-L{color:var(--red);font-weight:700}
+.search{position:relative}
+.tc{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;align-items:baseline}
+.tc b{font-family:var(--display);font-style:italic;font-size:18px}
+.empty{color:var(--muted);font-size:14px;padding:6px 0}
+svg.trend text{fill:var(--muted);font:500 10px var(--mono)}
+svg.trend .ln{stroke:var(--accent);fill:none;stroke-width:2}
+svg.trend .ar{fill:var(--accent);opacity:.12}
+svg.trend .gr{stroke:var(--line)}
+svg.trend circle{fill:var(--surface);stroke:var(--accent);stroke-width:2}
+svg.trend circle.last{fill:var(--accent)}
+.toast{position:fixed;left:50%;bottom:88px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:999px;font-weight:600;font-size:14px;z-index:9}
+@media (prefers-reduced-motion:no-preference){.view{animation:in .18s ease-out}@keyframes in{from{opacity:.4;transform:translateY(4px)}to{opacity:1;transform:none}}}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <header>
+    <div class="brand">Marth Lab<small>AP · Marth main</small></div>
+    <button class="mode" id="modeBtn" type="button"><i></i><span id="modeName">Forest</span></button>
+  </header>
+  <main id="main"></main>
+  <nav><div class="in" id="tabs"></div></nav>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+/* ---------- content from AP's notes ---------- */
+const MODES={
+  Forest:{c:"#7F8F38",who:"Your style",d:"Hyper movement with changes of pace. Dash dance, shield stops and mixups make them nervous; stay calm and use it."},
+  Water:{c:"#1D5585",who:"Kodorin style",d:"Patient and structured. Fair drifting back, lightshield, CC grab, flowchart punishes off f-throw, and edgeguards that track their resources."},
+  Mist:{c:"#A9CDEB",who:"PPMD style",d:"Grounded and deliberate. Walk and wavedash so dtilt and grab are always ready. Once they're in the air, keep them there."}
+};
+const MODEPLANS={
+ fox:{
+  Forest:["Hyper dash dance at the edge of his nair range; change pace to bait the commit","Dash forward and WD CC forward more than dashback","Empty hop waveland back → dash in grab to bait his landing punish (Fiction)","When he reads dashback, dash in. Dash dance a little longer and vary dash timing (Jared)","Approaching nair in unreactable zones, then raw grab his shield"],
+  Water:["Fair drifting back; never a full approaching fair","Hard shield or dash out of running shine","Once he respects you, outzone with SH nair and late fair","F-throw techchase flowchart; tipper f-smash kills past <span class=pct>~100%</span>","Edgeguard: track his double jump, react to the up-B sound, cover high angles first, punish low","Defense: quarter-circle SDI vs up throw → up air, save your DJ"],
+  Mist:["Walk and wavedash instead of dash dancing so dtilt and grab are always there","Face him and hold ground: dash in WD down dtilt, or WD down nair in place","Shield stop more than feels natural (Zain vs Fox)","Grab → up throw is the win condition; don't force finishers","Land with late fair or dair only; otherwise stay on the ground"]},
+ falco:{
+  Forest:["Dashback powershield WD in, mixed with dash forward PS and WD in","Ambiguity: dash in shield beats low laser, dash in dash attack beats high","Dash dance on the second beat next to his shield (Zain)","Tipper jab → he rarely lasers after, so dash dance freely"],
+  Water:["Powershield setups to negate lasers","SH nair beats approaching laser","Lightshield his slow pressure; roll or WD OOS to escape","Fair close lasers, dashback, nair in place","Up throw only works if he DIs away; otherwise f-throw flowchart","Edgeguard on the up-B sound only on LAN; netplay audio is delayed"],
+  Mist:["Stay above the lasers on platforms (PPMD)","Center stage, WD down, powershield, then dash in","Standing or crouching shield WD in → dtilt or grab vs approaching laser","Fair in place center stage; crouch to threaten PS and dtilt","Glued to the ground unless an approaching aerial is certain"]},
+ sheik:{
+  Forest:["Run up CC scrap mindset; dash back on vibes (Polish)","Dash through her constantly; moving makes you hard to hit","Corner: brief short dash dances → shield stop late fair (Zain)","Empty hop waveland grab feints","Let dashback end so your legs pull back: best bait for her grab or DA"],
+  Water:["Stay close enough to threaten so she can't needle","Punish her DA and f-tilt with dash; late fair vs SH and CC","Empty hops → whiff punish her punish with late up air or dair","She can't sweetspot from below: f-smash","High % on stage: up tilt instead of f-smash (amsah tech)","Defense: no full-away DI on down throw; SDI up and away"],
+  Mist:["Neutral is walk, WD, dtilt and grab. The goal is grab → up throw","Dtilt makes it hard for her to stay grounded","Once she's airborne keep her there: stand under her, up air and up tilt beat nair and dair","Bait the DJ and send her back up before she lands","WD down dtilt out of dash dance; WD back grab vs a predictable DA","DI choices that trade damage for a neutral reset: take the reset"]},
+ falcon:{
+  Forest:["Hyper fast dash dances in close quarters make shield stops and air mixups scarier","Empty hop away → waveland toward","Dash in, dash back once you're inside him, then nair","Tomahawks and unpredictable movement to bait and punish"],
+  Water:["He gives few openings: don't overcommit, watch for raptor boost","F-throw techchase at low %; up throw → up tilt or fair/up air from <span class=pct>~26%</span>","Edgeguard: snipe his descent. Vs a close up-B, don't dtilt or f-smash (his hurtbox extends); WD or SH back","DI in at low % to dodge the chaingrab; mix combo and survival DI from <span class=pct>~30%</span>","Dash through overshoot nair; f-smash roll-in techchases (vs S2J)"],
+  Mist:["Dtilt only rarely; move forward and make him hang himself on approaches (PPMD)","Hold a zone of space and don't throw out moves","Dash pivot f-tilt as a down throw follow-up","Covering a high up-B: SH and wait instead of full hop"]},
+ puff:{
+  Forest:["Marth is faster on the ground than Puff in the air: constant dash dance and wavedash","Overwhelm her with WD and DD; empty hop to threaten","Overshoot boost grab straight past her"],
+  Water:["Speed and CC; dash grab a crouching Puff","Punish her camping and her landings","F-throw flowchart by DI: pivot f-smash or tipper f-smash kills","Edgeguard: poke with dtilt, watch for rising pound","DI away on down throw; save your DJ","Take her to FD (Kodorin)"],
+  Mist:["Fair in place is the backbone","Dtilt once, spaced, then dashback","Inside her triangle threat range from below: shield or up tilt","Grab only in scrambles"]},
+ marth:{
+  Forest:["Bait fair: WD in, WD out in the air, WD back in CC grab","Nair slight forward autocancel → dtilt → dash dance regrab (Iceman)","Dash dance grab their fair"],
+  Water:["Discourage approaching dtilts with a late CC","Hold center stage","Punish by DI: rising fair, up air, f-smash","Edgeguard the high DJ first, then low recoveries","DI down-away on f-throw; tap jump or amsah tech to break combos","Counter → dtilt when they're too far"],
+  Mist:["Glue to the ground: dash dance whiff punish, hold C-stick down","Stay on stage for edgeguards and f-smash","Up tilt an airborne Marth","Jump, then SH fair to cover up-B to ledge (PPMD)"]},
+ ics:{
+  Forest:["Full hop mixups in front of their shield: DJ out dair, side-B stall, empty land, waveland","Mix empty lands, airdodges, wavelands and aerials on landing","React to stutter-step dash dances (Brynn)"],
+  Water:["Platforms and FH fair to avoid blizzard zoning","Avoid grabbing; if you do, up throw Sopo, f-throw Nana","Split them, late nair Nana, mix target switches","Respect belay invincibility and Sopo's side-B hitbox","Defense: pre-mash handoffs, slight DI away vs Sopo","Kodo top-plat camp: waveland off top plat → fair; haxdash DJ to side plat from ledge"],
+  Mist:["Dtilt spacing just outside their max WD","Condition with your latest SH fair, then tomahawk","After up throw, stay grounded and shark"]},
+ dk:{
+  Forest:["More wavedashes; dash dance grab a grounded DK","Dash through under him and up air"],
+  Water:["Dash dance to force late bairs, then fair before the bair comes out (Kodorin)","Focus down throw at early %","Run off counter if he goes low","Fairs over long up air strings, to get him offstage"],
+  Mist:["Lightshield instead of contesting; reset with movement around top plat","Shield stop fair, more empty hops, further spacing"]},
+ peach:{
+  Forest:["Hyper dash dance at the edge of her float range","Move through her instead of standing under her float"],
+  Water:["Stay in Royzone against turnip pulls","F-throw flowchart by DI: up tilt, nair, fair, pivot f-smash, or techchase","She recovers well: threaten and cut off her routes, don't send her too high","Combo DI vs f-throw; watch turnip drifts","Don't burn your double jump early"],
+  Mist:["Patient: shield her float aerials and grab","Grounded dtilt and grab; let her come down to you"]},
+ plumber:{
+  Forest:["Hyper dash dance just outside their range; they can't keep up on the ground","Dash through after their SH aerials whiff","Shield stops into tipper fair to wall their approach"],
+  Water:["Fair drifting back; CC grab their low % aerials","F-throw techchase and fair strings to send them offstage","Edgeguard by tracking resources: once the DJ is gone their recovery is linear"],
+  Mist:["Walk and WD at tipper range; dtilt and grab, let them come to you","Once they're up, keep them there with up air and up tilt","Patient shield vs pills, then dash in"]}
+};
+const QUOTES=[
+  "Think, think, think, and then stop thinking.",
+  "Stop trying to win. Play to learn. I play best when I'm implementing something new.",
+  "Glue yourself to the ground. Dash dance, whiff punish, hold C-stick down.",
+  "Every mixup needs a reason. If it isn't worth it, disengage.",
+  "Keep them in disadvantage. To get out, they have to gamble.",
+  "Attack when you have: no reaction disadvantage, frame advantage, positional advantage.",
+  "My movement forces them to play differently. They can't approach safely. Use their nerves."
+];
+
+const MU={
+ fox:{name:"Fox",
+  theme:"Center stage is the priority; don't chase platforms. Marth beats Fox on the ground: be dash-heavy and grounded, use WD CC and forward dash more than backdash.",
+  pocket:["Empty land / waveland back first, then unlock falling aerials","Get knockdown, get grab. Stop pivot f-smashing techchases","Recovering: drift back, save DJ, SDI shine quarter-circle"],
+  low:["Unreactable zones: throw out a nair. If they shield it, start raw grabbing","Reactable zones: late fair → CC grab","If Fox reads dashback with grab/dtilt, dash in or pivot grab","Dtilt sucks around <span class=pct>14–16%</span>. Get him to nair-tumble % first","CC nair → mash shield grab at low %"],
+  high:["At <span class=pct>~140%</span> f-throw / b-throw for the kill, not up-throw","Less f-smash in punish when Fox is low","Vs Hurricane at your kill %: dash dance and wait for his whiff"],
+  sections:{
+   Punish:["Back throw at <span class=pct>0%</span> covers every RTC until <span class=pct>7%</span>, then f-throw","Up throw at 0 → instant dair on landing tech/miss tech (Aerius)","Fox has to up-B: drop down, DJ bair, side-B, up-B. Giga low → just up-B to ledge","Off techchase go for grab, not down smash. Off an RTC spot, crouch in front","Use fairs to extend: DI in dies to dair/f-smash, DI out is a bad angle"],
+   Defense:["SDI shine with quarter-circle; ASDI down tech Fox side-B until <span class=pct>65%</span>","Don't hold in near ledge when recovering, you get shined. Drift back","Jab doesn't tumble until <span class=pct>130%</span>: hold down, mash shield grab","Hold slight away vs dash attack; full away sends you far"],
+   Ledge:["Fair from ledge more instead of instant ledgedash","Ledge counter 50/50: do I attack or not","Fox invincible: grab ledge, normal getup if they're right on you, or plat movement"]},
+  plan:["WD forward CC grab","Late fair in place","Approaching nair in unreactable zones","Raw grab vs shielding","Ledge options"]},
+ falco:{name:"Falco",
+  theme:"Keep moving. Hold your ground: Falco in the air → nair, Falco on the ground → dashback powershield or grab. In scraps, pivot grab.",
+  pocket:["Take the laser, then fair. Never panic DJ","Get center, wavedash down, powershield, then dash in grab/nair/fair","Edgeguard: face ledge, wait longer before committing"],
+  low:["Look where he throws dair after laser: undershoot → approaching nair, overshoot → nair in place","Dashback PS WD in, but watch your space","Read 1s (approaching dair/nair) with dashback grab, read 3s with SH dair (Ossify)","Falco on side plat always lasers low: SH nair → tipper f-smash","Create ambiguity: dash in shield beats low laser, dash in dash attack beats high laser"],
+  high:["Shield stop, fair in place, low tipper fair away","Avoid trades at all costs","More forward tilt"],
+  sections:{
+   Neutral:["Zain plays on the second beat of dash dance next to a shielding Falco, waiting for the panic option","Stay above the lasers on platforms (PPMD)","Retreating fair from shield: Falco can't directly punish it","Tipper jab → Falco rarely lasers after, so dash dance freely"],
+   Defense:["Sweetspot or wall tech vs Falco; dsmash/dair shouldn't cover your up-B from below","SDI lasers when grabbed; DI the grab","Drift to ledge when juggled instead of fairing out of disadvantage"],
+   Edgeguard:["Don't grab ledge without a hard read","Careful with DJ and side-B","Jump out there when you hit him off and react","Mix in f-tilt over f-smash, the angle covers more"]},
+  plan:["Dashback powershield WD in","Nair vs airborne Falco","Center stage + PS → dash in","Edgeguard patience"]},
+ sheik:{name:"Sheik",
+  theme:"Keep moving. Iceman nair forward / late nair, spaced low fairs. Play the CC mixup: dash through, grab, or spot dodge. Play around dash-grab range.",
+  pocket:["Under ~20%: nair, dtilt, grab only","Stay on the ground and up-tilt when she has no resources","Get her to 80% → grab, up-throw → fair offstage"],
+  low:["Tipper fair doesn't knock down until <span class=pct>~20%</span>","Fair obvious fairs from distance (jump first to beat it)","Empty hop waveland grab feint; empty hop → react to her moving in with dair/grab","Wait one extra dash before grabbing; at least hold down to CC","Dash through her is a great crossup"],
+  high:["Low profile her fairs with WD under","Beat run-cancel jab","Up tilt instead of f-smash on stage at high % (she can amsah tech)"],
+  sections:{
+   Punish:["Up throw → up tilt is true <span class=pct>22–30%</span>","Down throw → down smash at 0 covers in place, miss tech and tech in","Tipper fair juggles 0-to-death; combo for kills, not %","Don't DJ fair to push advantage every time. Hold it, she has to gamble"],
+   Defense:["DI in front on her down throw from <span class=pct>0–80%</span>","DI out and down vs down throw → up smash","Her dtilt spam: frames 8–28 can't act → SH dair","When she's on top plat, hold center dash dancing, SH up air if she drops to side plat"],
+   Edgeguard:["She can't sweetspot from below → f-smash (Kodorin)","Normal getup when she's too far to double-poof on stage","Up-B to stage: stand on her, wait out the amsah tech, then up-B"]},
+  plan:["Nair / late nair in","Spaced low fairs","CC mixup","Up throw → up tilt"]},
+ falcon:{name:"Falcon",
+  theme:"Hold space. Stay between zones 2 and 3, make him hit first. Dash dance at full nair spacing and react to nair with CC grab. No down smash in neutral.",
+  pocket:["CC his nair, mash shield grab","Stop drifting in with nair","Recover low; he struggles to edgeguard ledge"],
+  low:["CC nair until <span class=pct>~85%</span>, then mash shield grab","ASDI down gentleman until <span class=pct>48%</span>","ASDI down up air until <span class=pct>38%</span>: dash in holding C-stick down","<span class=pct>37%</span> is a juicy up-tilt percent vs approaching nair","For run-up grab reads, use retreating fairs"],
+  high:["He tries to trade (knee, grab): run under overshoot knee and punish","React to stomp at the last second with shield","When he's 80%+, just take the knockback"],
+  sections:{
+   Zones:["1: stomp in place / retreating bair","2: slight forward aerial","3: full send nair/stomp","4: too far"],
+   Punish:["Down throw → if he jumps knee/nair, counter","Up throw → up air around <span class=pct>60%</span>","Clean up air doesn't knock down until <span class=pct>69%</span>","Falcon lands with stomp: shark with jump → up air or up tilt","Tipper dsmash at ledge kills <span class=pct>111%</span>"],
+   Edgeguard:["Go low, don't use the good side-B until low","Stop bairing his up-B; stay still and f-smash, or late fair the landing","Covering kick: DJ after the bair, not before"]},
+  plan:["Zone 2–3 spacing","CC grab the nair","Retreating fair vs run-up grab","Down throw counter"]},
+ puff:{name:"Puff",
+  theme:"Watch the Puff and the space between you. Punish with fair/nair when she jumps at you. Dtilt from far when she crouches. Grabs only in scrambles and tomahawks.",
+  pocket:["Fair in place; never double dtilt","Don't cross her up carelessly or YOLO into the corner","Fish for the dair setup at 50–60%"],
+  low:["Dash away when she jumps, dash in when she double jumps and shark it","Single bair drifting away → WD in dtilt the landing","Bair drift mid → nair in place / away; bair in place → nair away","Aggro move in → dashback side-B","Dtilt her once if she's crouching, spaced"],
+  high:["Fair in place, spaced further, control all the space","Dair at <span class=pct>50–60%</span> → pivot f-smash, up smash, or FH dair if she DIs off","Pivot f-smash kills center around <span class=pct>62–66%</span>","F-throw WD f-smash at <span class=pct>~76%</span>"],
+  sections:{
+   Notes:["Fair on her shield → grab is bad; she jumps out","Her threat range is a triangle: playing right under her is fine (shield or up tilt)","Between stocks: low % jump to top plat, high % go to ledge","She runs off stage: always fastfall up-B, not side-B"],
+   Stages:["Stadium and Yoshi's as counterpicks","FD is fine: she's good on platforms"]},
+  plan:["Fair in place","Spaced dtilt","Scramble/tomahawk grabs","Dair kill setup"]},
+ marth:{name:"Marth",
+  theme:"Keep moving and hold your ground. They dtilt → CC. They fair → dash dance grab.",
+  pocket:["Glue to the ground; stop full-hopping around them center","Recover low. Sweetspot, no panic jumps to stage","No more nair from ledge"],
+  low:["Up tilt an airborne Marth; spam it until <span class=pct>40%</span>","CC grab / tipper dtilt","Nair slight forward → autocancel dtilt → dash dance regrab (Iceman)","Bait fair with WD in, WD out, then WD back in CC grab"],
+  high:["Dash in shield stop fair","Up tilt on plat kills around <span class=pct>120%</span>","Tipper dsmash at ledge kills <span class=pct>85%</span>"],
+  sections:{
+   Ledge:["Counter fair from ledge (Beezy). They die at 0 → grab ledge","Ledgedash reverse up tilt kills ~<span class=pct>120%</span> (non-sweetspot ~130)","Dtilt into read dashback with dash attack"],
+   Edgeguard:["Stay on stage and f-smash; stop jumping to cover","Flowchart: face away so if they hit you, turn around dtilt"]},
+  plan:["CC the dtilt","Dash dance grab vs fair","Grounded punish","Ledge play"]},
+ ics:{name:"IC's",
+  theme:"Condition with fair, learn how they react with your latest SH fair, then mix in tomahawks. Your four tools: dtilt, SH fair, nair, FH fair.",
+  pocket:["Stay just outside their max wavedash range","Losing neutral? Change your fair/dtilt ratio","Always face them"],
+  low:["Dtilt sets up the next interaction, not the opening","Double fair crosses up shield and separates","FH fair shield pokes and separates","You can CC grab their dairs; CC dsmash at <span class=pct>50–60%</span>","IC SH up air reaches DL side plat; CC it until <span class=pct>25%</span>"],
+  high:["Up tilt / up air juggles on plats (see Ref)","If they shield, instant f-throw → up-B vs Nana"],
+  sections:{
+   Blizzard:["SDI up out of blizzard and jab","SH → see blizzard → reverse side-B stall → up air or fair the other side","See startup: go in. Late: accept it and SDI out"],
+   Edgeguard:["Low: dropdown up-B Sopo","F-smash covers a lot; Sopo can be clipped during up-B","Isolated Nana DJs barely to stage: wall Popo, turnaround dtilt"],
+   Stages:["FD is about 60-40 Ice Climbers","FoD is a common starter; Yoshi's plat dancing is weak"]},
+  plan:["Dtilt spacing","SH fair conditioning","Double / FH fair","Blizzard SDI"]},
+ dk:{name:"DK",
+  theme:"Dash dance to force late bairs, then interrupt him before the bair with an early fair.",
+  pocket:["About one random nair per seven fairs","Down throw at early %","Run off counter if he goes low"],
+  low:["Shield stop fair beats retreating bair; loses if late","Late fair → ASDI down his bair at 0 → grab","Grounded DK: dtilt / CC, more wavedashes, dash dance grab"],
+  high:["Dash in shield stop fair","Up tilt kills around <span class=pct>180%</span> on Battlefield"],
+  sections:{
+   Punish:["F-throw techchase: watch his feet; regrab if he DIs in","Down throw → turnaround → up tilt → reverse fair → f-smash","Soft up tilt on his up-B landing instead of f-smash"],
+   Edgeguard:["Double bair at ledge; dair if he's below","Run off fair or early up-B","Too far → f-smash; counter → dtilt"]},
+  plan:["Dash dance vs early bair","Early fair vs late bair","Down throw punish","Edgeguard"]},
+ peach:{name:"Peach",
+  theme:"React to her approach; she greeds for nair. Stay in Royzone against turnips and don't burn your double jump early.",
+  pocket:["She's invincible and dashing at you: DJ, airdodge or waveland away. Don't fall into nair","Insta Z-drop her turnips","At ~80% she expects down throw: f-throw → f-smash"],
+  low:["Stay in Royzone against turnip pulls","Watch turnip drifts; catch and Z-drop them","Invincible Peach while you go top plat → side plat: react, or drop down fair"],
+  high:["F-throw → f-smash kills around <span class=pct>80%</span> when she DIs for down throw","Don't send her too high in combos"],
+  sections:{
+   Defense:["Missed tech while she dash dances next to you: tech roll away as she dashes away (Armada)","Combo DI against f-throw"],
+   Edgeguard:["She recovers well: threaten and cut off routes instead of chasing"]},
+  plan:["Royzone spacing","Reacting to her approach","Grab → f-throw","Edgeguard pressure"]},
+ plumber:{name:"Mario / Doc / Luigi",chip:"Plumber",note:"Not in your notes yet. General Marth knowledge; add your own as you play them.",
+  theme:"Outrange them. Plumbers have short reach; wall them at tipper range with fair and dtilt and whiff punish their approaches. Recover so cape can't read you.",
+  pocket:["Stay just outside their aerials; tipper range is the whole game","Recover low, sweetspot, mix timing against cape","Luigi: respect his WD-in and shield grab"],
+  low:["Fair in place and tipper dtilt at max range wall out their SH aerials","Pills and fireballs: powershield or get over them, then punish the landing","Full hop pill (on your study list): get under it or powershield, punish the landing","Their CC is strong at low %: use tippers and grab, not sour aerials","Dash dance outside their range and whiff punish with grab"],
+  high:["They kill with f-smash, up smash and Doc bair: don't land on their shield up close","Tipper fair and tipper f-smash kill; up air and up tilt juggles kill off the top"],
+  sections:{
+   Punish:["Throw → fair and up air strings; they're easy to juggle","Luigi has low traction: f-throw techchase and up air juggles","Take them offstage with fair; their recoveries are short"],
+   Defense:["Up-B out of shield is fast for all three: don't land on their shield up close","Cape turns your recovery around: recover low and below their reach, sweetspot","DI their smash attacks out and away"],
+   Edgeguard:["Their up-B is short and linear once the DJ is gone","Doc/Mario tornado gains height: cover the rise, then the ledge","Luigi side-B misfire is the variable: hold ground near ledge, f-smash"],
+   Stages:["Big stages and FD let you outrange them; avoid small stages where they get in"]},
+  plan:["Tipper wall (fair/dtilt)","Whiff punish grabs","Low recovery vs cape","Edgeguard short recoveries"]}
+};
+const POCKETS={
+ fox:{Forest:["Dash dance at the edge of his nair; change pace","Dash forward more than back","Empty land / waveland back before falling aerials"],Water:["Fair drifting back, never a full approach","Shield or dash out of running shine","F-throw techchase; tipper f-smash at 100%+"],Mist:["Walk and WD so dtilt and grab are ready","Shield stop more than feels natural","Grab → up throw is the win"]},
+ falco:{Forest:["Dashback PS WD in, mixed with forward PS","Dash in shield / dash in DA ambiguity","Second-beat dash dance by his shield"],Water:["Powershield, then SH nair the approaching laser","Lightshield his pressure","Up throw only on DI away"],Mist:["Stay above his lasers on plats","Center, WD down, powershield, dash in","Glued to the ground"]},
+ sheik:{Forest:["Run up CC scrap mindset","Dash through her constantly","Let dashback end to bait her grab/DA"],Water:["Stay close enough that she can't needle","Late fair vs SH and CC","Up tilt over f-smash at high % on stage"],Mist:["Walk, WD, dtilt, grab → up throw","Keep her in the air once she's up","Take the reset on DI"]},
+ falcon:{Forest:["Hyper dash dance in close quarters","Empty hop away → waveland toward","Tomahawks to bait"],Water:["Don't overcommit; watch for raptor boost","F-throw techchase at every %","DI in at low %"],Mist:["Rare dtilt; move forward, let him hang himself","Hold a zone, don't throw out moves","SH and wait vs a high up-B"]},
+ puff:{Forest:["Constant DD and WD; you're faster on the ground","Empty hop to threaten","Overshoot boost grab"],Water:["Dash grab her crouch","F-throw flowchart by her DI","DI away on down throw"],Mist:["Fair in place","One spaced dtilt, then back off","Grab only in scrambles"]},
+ marth:{Forest:["WD in / out fair bait → CC grab","Nair forward autocancel → regrab","Dash dance grab their fair"],Water:["Late CC their dtilt","Hold center","Punish by their DI"],Mist:["Glue to the ground","Stay on stage to edgeguard","Up tilt them in the air"]},
+ ics:{Forest:["Full hop mixups in front of their shield","Mix empty lands and wavelands","React to stutter steps"],Water:["Plats and FH fair vs blizzard","Don't grab unless they're separated","Pre-mash before grabs"],Mist:["Just outside their max WD","Latest SH fair, then tomahawk","Stay grounded and shark"]},
+ dk:{Forest:["Dash dance grab; more wavedashes","Dash under him and up air","Fair before his late bair"],Water:["Dash dance, then early fair the late bair","Down throw at early %","Run off counter if he goes low"],Mist:["Lightshield, don't contest","Shield stop fair","Further spacing, more empty hops"]},
+ peach:{Forest:["Dash dance at the edge of her float","Move through her, not under her","React when she dashes in"],Water:["Royzone vs turnips","F-throw by her DI","Keep your double jump"],Mist:["Shield her float aerials, then grab","Dtilt and grab","Let her come down to you"]},
+ plumber:{Forest:["Dash dance just outside their reach","Dash through their whiffed SH aerials","Your speed beats them on the ground"],Water:["Fair drifting back","CC grab their low % aerials","Edgeguard once their DJ is gone"],Mist:["Tipper dtilt and fair range","Let them come to you","Keep them up with up air"]}
+};
+
+const P=s=>`<span class=pct>${s}</span>`;
+const KODO={
+ fox:{
+  Punish:[`${P("0–7%")} F-throw → regrab, or wait for spot dodge/roll. Alt: d-throw/b-throw techchase`,
+   `${P("8–19%")} F-throw techchase: RTC, hard-read dair regrab/DA, or take advantage. Up throw → up tilt starts knocking down ~${P("13%")}`,
+   `${P("20–60%")} Up air knocks down from ${P("20%")} (${P("21%")} stale). Late up air vs slideoff; RTC in place → up air → up tilt`,
+   `Tech roll at mid %: delay up air, DJ fair/bair, or hard-read up tilt vs f-smash. Hard DI away → up throw chaingrab`,
+   `${P("60–80%")} Up air guaranteed on any platforms. Tri-plat: weak up air stops top-plat DI, then instant up tilt`,
+   `${P("80–120%")} Weak up air → fair vs up-B mixup`,
+   `${P("100%+")} Tipper f-smash kills on almost any DI`,
+   `${P("120%+")} FH DJ nair; spaced side-B (dodges shine reversal) → falling weak up air. B-throw combos to up-B/f-smash on DI in`],
+  Defense:["Up air: quarter-circle SDI for two SDI inputs; QCSDI away when you expect shine","Dash away option-selects against drill → grab","Cornered and expecting shine: pre-emptively fastfall to ledge, then return the stick to neutral","Nair: DI down and away, especially mid %","Never side-B on reaction to shine; side-B when he's burning ledge invincibility","Sweetspot as low as possible to dodge shine and CC dsmash edgeguards; keep your DJ"]},
+ falco:{
+  Punish:["Same throw flowchart as Fox. Up throw only works if he DIs away; DI behind breaks it",
+   `${P("0–7%")} F-throw → regrab, or wait for spot dodge/roll. ${P("8–20%")} F-throw techchase, up throw from ~${P("13%")}`,
+   `Up air knocks down from ${P("21%")} (${P("22%")} stale)`,
+   `${P("60–80%")} Weak up air on tri-plats, nair / pivot f-smash / fair DI mixups. ${P("80–120%")} weak up air → fair vs up-B`,
+   `${P("100%+")} Tipper f-smash kills on almost any DI. ${P("120%+")} b-throw combos to up-B/f-smash on DI in`],
+  Defense:[`${P("0–20%")} He gets at most a two-piece off shine. SDI up the shine; SDI up the pillar dair so it doesn't link`,"Pillar: SDI the outer shine hitbox up and away. Incoming dair: SDI down to force a techchase","Grabbed: neutral DI. Up throw: SDI up repeatedly against the lasers","Slideoff dair: hold C-stick down, DI away. Tri-plats: SDI toward platform edges so the combo ends","Recovery: no side-B when he can bair you; side-B when he's out of ledge invincibility. Sweetspot low, keep DJ"]},
+ marth:{
+  Punish:[`${P("0–7%")} F-throw by DI: down/away → chaingrab or wait for spot dodge/roll; in → SH nair; neutral → rising tipper fair (unreactable)`,
+   `${P("9–11%")} Down/away DI → up throw → FH rising fair in place is true`,
+   `${P("12–63%")} Full away → FH (or SH) rising fair; neutral → SH/FH rising up air; behind → turnaround dash fair`,
+   "Kill with pivot f-smash or f-smash in place"],
+  Defense:["Decide your DI before the grab; after the throw is too late","F-throw: DI down and away. Up throw: neutral DI. Up tilt is never true off up throw","Up air/fair are usually true: buffer tap jump (3-frame window) or press X+Y to escape early","Onstage vs f-smash: buffer amsah tech, which also option-selects DI down/away","Wall tech (hold jump) → bair vs onstage dtilt/f-smash; or wall tech → fastfall → up-B","No side-B inside his threat range when recovering"]},
+ sheik:{
+  Punish:[`${P("0–7%")} F-throw doesn't knock down; read her option out of it`,
+   `${P("0–21%")} Up throw → up tilt is a 50/50, not true. You can't RTC Sheik: hard-read dair regrab, or take advantage`,
+   `${P("22–30%")} Up throw → up tilt is true on all DI`,
+   `${P("30–39%")} SH fair vs DI in/behind; SH up air/up tilt vs neutral`,
+   `${P("40–63%")} FH fair vs DI in/behind; FH up air vs neutral`,
+   `${P("64%+")} Juggle mixup on aerial vs DJ; techchase reads for up tilt, tipper f-smash, up-B`,
+   `${P("90%+")} F-throw, then WD or walk by DI: tipper dsmash vs tech-roll-away 50/50. Offstage f-throw + neutral DI → run off fair`],
+  Defense:["Down throw: never full away unless offstage (chaingrab or DA)",`${P("0–20%")} DI anything but full away; QCSDI up and away also option-selects DJ, so you escape up tilt`,"Thrown onto a platform: buffer shield-drop up air","Down throw → up air: SDI up and away; the combo ends at two up airs",`${P("100%+")} DI toward platforms or slight in/away to force the harder JC up smash`,"No side-B inside her threat range when recovering"]},
+ puff:{
+  Punish:["F-throw is the main throw; down throw only with no room to dash",
+   `${P("0–30%")} Survival DI → nair; neutral → fair; combo (down/away) → dair techchase covering 3 of 4 options`,
+   `${P("30–69%")} Survival → fair or dair techchase; neutral → DA; combo → dair techchase. From ${P("50%")}, pivot f-smash by DI length`,
+   `${P("70–90%")} Survival/neutral → pivot f-smash; combo → dash WD dsmash`,
+   `${P("90%+")} Survival/neutral → WD tipper f-smash or up tilt; combo → dash WD/run-cancel dsmash`],
+  Defense:["Down throw: DI away almost always",`Down throw to side plat: DI away or slight away; tap jump away from ~${P("20%")}`,`Rested under ${P("20%")}: survival DI; from ${P("20%")}: combo DI`,"Wall of pain: pre-emptively DI down and away","Recovery: don't side-B predictably in her range; up-B within her ledge refresh window"]},
+ falcon:{
+  Punish:[`${P("0–7%")} F-throw → regrab mixup or wait for spot dodge/roll`,
+   `${P("8–100%+")} F-throw techchase: RTC, dair regrab, up air → up tilt, up tilt, tipper, up-B. If he slides off to ledge, up/down throw instead`,
+   `${P("26–40%")} Up throw → up tilt; FH fair if he keeps DJing away`,
+   `${P("41–100%+")} Up throw → fair or up air into combo or techchase`,
+   "Push him horizontally for Ken combos and edgeguards rather than killing off the top"],
+  Defense:[`${P("0–15%")} DI in (out gets chaingrabbed); DJ out of it and force a nair. SDI up the first hit, down-away vs rising nair`,
+   `${P("15–30%")} Still DI in. Knee: hold down and away. Offstage without DJ is very dangerous`,
+   `${P("30–70%")} Mix combo and survival DI. Not up-aired immediately → switch to survival DI for knee. Below ~${P("50%")} knee can combo itself`,
+   `${P("70%+")} Combo DI; slight up/in makes up throw harder but makes d-throw knee true`]},
+ peach:{
+  Punish:["F-throw by her DI; down throw sometimes. Avoid b-throw and up throw (worst advantage)",
+   `${P("0–7%")} F-throw doesn't knock down: mix spot dodge/roll/regrab`,
+   "Survival DI → up tilt (very low), nair (low), fair (mid), pivot f-smash (high). Neutral → DA",
+   "Combo DI → techchase: RTC (missed: buffer lightshield with Z), SH late fair, or %-based reads (dair regrab, up tilt, up air, tipper dsmash)",
+   "Ambiguous DI: regrab is safest"],
+  Defense:["F-throw: combo DI until high %, then survival","Down throw: combo DI to avoid chaingrab; survival vs nair at high %","Turnip drifts: drift in place with side-B/DJ, then sweetspot up-B. DI out of her dair","Ledge: stall with side-B/DJ to force her getup; vs float regrab, early DJ up-B, no side-B","Onstage near ledge: hold down briefly, she usually dsmashes"]},
+ ics:{
+  Punish:["Avoid grabbing. If you do: never pummel. Sopo → up throw, Nana or unsure → f-throw","Sopo alone: Peach-style flowchart, up throw more viable; throw him toward the corner","Separated: chain late nair on Nana until offstage, then dair spike or wait for her DJ","Sopo can't save Nana in tumble; she only escapes by ledge or DJ","Kill setup: take it when ahead even if Sopo can hit you; when behind, target-switch instead of trading"],
+  Defense:["Center grab: DI down and away; SDI up negates the regrab","Corner grab: you'll probably get combo'd. Still DI down and away","Pre-mash before the grab; reactive mashing gives them time","Sopo grab: slight DI away so WD up smash/DA isn't true and you can DJ out","Sweetspot up-B; wall tech bair is fine. High is OK if Nana jabs Sopo"]}
+};
+
+const PLAYERS=[
+ {n:"Stiv",c:"Fox / Sheik",b:["FoD: he nairs in before you're off the plat. Fall through","3–4 dash dances, then nair/drill","Shielding on plat after respawn is bait: waveland under, take center","Spot dodges after your dtilt","Fadeback drill: read the dashback, dash attack it","Sheik: dash attacks your ledgedash → CC grab","Sheik: SH fairs your corner shield → WD OOS, dash through","Double jumps constantly; react to DJ waves"]},
+ {n:"Zoey",c:"Fox / Falco",b:["Spot dodges on your landing: empty land","Always commits: dash WD in grab, or roll","Expects falling aerial: empty land grab (Kodorin)","Starting to expect pivot f-smash: fair vs no DI"]},
+ {n:"Yams (Jared / Yamasaki)",c:"Marth",b:["Short hops and floats, doesn't fastfall. Don't move","Swing on his jump animation, or run up ASDI down","Lightshield → release → dash off ledge fair worked","Ate your panic jumps to stage: recover low","Dtilt → he jumps → read with f-smash (LSD)","Counter his fair from ledge (Beezy). Won you a game 2 last stock","His fair from ledge is great; steal it","Dair from ledge vs him, tipper f-smash at ledge"]},
+ {n:"Hurricane",c:"Fox",b:["Plays far away: empty hop shield, or WD back out of the jump","At your kill %, dash dance and wait for his whiff","Watch stage position when you jump vs him; jump when he has no dashback","Practice the save state from the Yoshi's drill: SDI out and grab"]},
+ {n:"Nox",c:"Marth",b:["Swings to get out: punish grounded, up tilt","Doesn't sweetspot: stay on stage, f-smash or counter","Run up and shield to bait. Presence alone works","Less dtilt vs a swinger"]},
+ {n:"Christian",c:"Falcon",b:["Drift-backs when recovering","Rolls out of dash dance grab on beat 2","Doesn't cover late fair from ledge","Close quarters: shield his dair in place","Dash through nair, he stomps in place → WD down to keep space"]},
+ {n:"Lunary",c:"Falcon",b:["Rolls away after a low % nair","Side-Bs in disadvantage after escaping combos","Shields f-smash in neutral; whiff punish spaced instead","After down throw at ledge: DJ airdodge to side plat"]},
+ {n:"Brynn",c:"Ice Climbers",b:["Stutter step in dash dance: react and dash attack / f-smash","Doesn't spam blizzard; contest after one with dtilt","Stay just out of max WD range"]},
+ {n:"Aura (Derek)",c:"Peach · also Fox, Sheik",b:["Peach invincible while you go top plat → side plat: watch her dash at you and react","He always greeds for the nair there: DJ to top plat, airdodge or waveland away, or drop down fair","Master of timing. Going in on the first pace is death","Fox mixup is dtilt/CC or nair/drill: face it. Dash in WD down dtilt, or WD down nair in place","Bait a scramble after his first whiffed aerial","Sheik dtilt spam has 20 frames you can punish: SH dair","Your edgeguards vs Aura are the best clips you have"]},
+ {n:"Graves",c:"Falco",b:["Impatient if you platform camp"]},
+ {n:"Jello",c:"Falco",b:["Used f-smash early % instead of just grab","Jab his side-B / run off fair / dtilt low","Practice up throw and RTC"]}
+];
+
+const DRILLS=[
+ {id:"ld",t:"Ledgedash",d:"Hold back to regrab, then ledgedash. On the right side, hold straight down deliberately."},
+ {id:"sdi",t:"SDI drills",d:"Shine quarter-circle, blizzard SDI up, ASDI up with both sticks."},
+ {id:"rtc",t:"RTC vs Falcon",d:"UnclePunch save state. Fair out of RTC on roll away/in, up tilt out of RTC."},
+ {id:"tech",t:"Tech & insta-airdodge",d:"Shine → up smash amsah tech at low %. Double stick down. Tech after up-B."},
+ {id:"lc",t:"L-cancel movement",d:"Move around the stage, edge-cancel dairs, SH DJ late dair/fair on plats (Ossify)."},
+ {id:"uthrow",t:"Up throw combos",d:"Marthnerd up throw tables for Fox, Falco, Falcon. Plat follow-ups."},
+ {id:"ps",t:"Powershield up-B",d:"Shield Fox/Falco up-B on stage, wavedash out, punish the landing."},
+ {id:"vod",t:"VOD review",d:"Top Marth vs your next opponent. Screenshot the frame they jumped, rewind 14 frames."}
+];
+
+const SEED_REVIEW={id:"seed1",date:"2026-05-11",opp:"Jello",mu:"falco",result:"L",event:"Eggdog House Party R1",
+ elements:[{t:"DI on grabs / SDI lasers",r:"red"},{t:"Grab over early-% f-smash",r:"red"},{t:"Retreating aerials vs approaches",r:"yellow"},{t:"Up throw + RTC",r:"red"}],
+ next:"Practice up throw and RTC. Jab his side-B / run off fair / dtilt low.",fromNotes:true};
+
+/* ---------- state ---------- */
+const KEY="marthlab.v1";
+let S={tab:"plan",mu:"fox",mode:"Forest",log:{},reviews:[SEED_REVIEW],timer:null,drill:"ld"};
+try{const s=JSON.parse(localStorage.getItem(KEY)||"null");if(s)S=Object.assign(S,s)}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const today=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
+function toast(m){const t=$("#toast");t.textContent=m;t.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>t.hidden=true,1800)}
+
+/* ---------- tabs ---------- */
+const TABS=[
+ ["plan","Plan",'<path d="M4 5h16M4 12h10M4 19h7"/><circle cx="18" cy="17" r="3"/>'],
+ ["players","Players",'<circle cx="9" cy="8" r="3.5"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14c2 .8 3 3 3 6"/>'],
+ ["drill","Drill",'<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9 2h6"/>'],
+ ["review","Review",'<path d="M5 3h10l4 4v14H5z"/><path d="M9 12l2 2 4-4"/>'],
+ ["ref","Ref",'<path d="M4 4h6a2 2 0 0 1 2 2v14a2 2 0 0 0-2-2H4zM20 4h-6a2 2 0 0 0-2 2v14a2 2 0 0 1 2-2h6z"/>']
+];
+function renderTabs(){
+ $("#tabs").innerHTML=TABS.map(([id,l,ic])=>`<button type="button" data-tab="${id}" aria-current="${S.tab===id}"><svg viewBox="0 0 24 24">${ic}</svg>${l}</button>`).join("");
+}
+document.addEventListener("click",e=>{
+ const t=e.target.closest("[data-tab]");if(t){S.tab=t.dataset.tab;save();render();window.scrollTo(0,0)}
+});
+
+/* ---------- mode ---------- */
+function renderMode(){const m=MODES[S.mode];document.documentElement.dataset.mode=S.mode.toLowerCase();$("#modeName").textContent=S.mode;$("#modeBtn").style.setProperty("--mc",m.c)}
+$("#modeBtn").onclick=()=>{const k=Object.keys(MODES);S.mode=k[(k.indexOf(S.mode)+1)%k.length];save();renderMode();toast(S.mode+": "+MODES[S.mode].d.split(".")[0]);if(S.tab==="plan")render()};
+
+/* ---------- views ---------- */
+function vPlan(){
+ const m=MU[S.mu];
+ const q=QUOTES[new Date().getDate()%QUOTES.length];
+ if(!m){S.mu="fox";return vPlan()}
+ const pk=POCKETS[S.mu]?.[S.mode]||m.pocket;
+ return `<div class="chips" role="group" aria-label="Opponent character">${Object.entries(MU).map(([k,v])=>`<button class="chip" type="button" data-mu="${k}" aria-pressed="${S.mu===k}">${v.chip||v.name}</button>`).join("")}</div>
+ <div class="sec"><span class="tag">vs ${m.name} · ${S.mode} mode</span><h2>${m.theme.split(".")[0]}.</h2><p class="theme-line muted">${m.theme.split(".").slice(1).join(".").trim()}</p>${m.note?`<p class="muted" style="font-size:13px">${m.note}</p>`:""}</div>
+ <div class="pocket"><h3>Between games · ${S.mode}</h3><ol>${pk.map(x=>`<li>${x}</li>`).join("")}</ol>
+  <h3 style="margin:14px 0 6px">Every game vs ${m.chip||m.name}</h3><ul class="kl">${m.pocket.map(x=>`<li>${x}</li>`).join("")}</ul></div>
+ <div class="split">
+  <div class="panel"><h3>Low %</h3><ul>${m.low.map(x=>`<li>${x}</li>`).join("")}</ul></div>
+  <div class="panel"><h3>High %</h3><ul>${m.high.map(x=>`<li>${x}</li>`).join("")}</ul></div>
+ </div>
+ <div class="panel">${sectionsFor(S.mu).map(([k,v,kd],i)=>`<details ${i===0?"open":""}><summary>${k}${kd?` <span class="tag">+ Kodorin</span>`:""}</summary><div>${v.length?`<ul>${v.map(x=>`<li>${x}</li>`).join("")}</ul>`:""}${kd?`<h3 class="kh">Kodorin's notes</h3><ul class="kl">${kd.map(x=>`<li>${x}</li>`).join("")}</ul>`:""}</div></details>`).join("")}</div>
+ <div class="panel sec">
+  <h3>Style vs ${m.name}</h3>
+  <div class="seg" role="group" aria-label="Play style">${Object.keys(MODES).map(k=>`<button type="button" data-setmode="${k}" aria-pressed="${S.mode===k}"><i style="background:${MODES[k].c}"></i>${k}</button>`).join("")}</div>
+  <p><b>${MODES[S.mode].who}.</b> <span class="muted">${MODES[S.mode].d}</span></p>
+  <ul>${(MODEPLANS[S.mu]?.[S.mode]||[]).map(x=>`<li>${x}</li>`).join("")}</ul>
+ </div>
+ <p class="quote">${q}</p>`;
+}
+function sectionsFor(mu){
+ const m=MU[mu],k=KODO[mu]||{};
+ const out=Object.entries(m.sections).map(([n,v])=>[n,v,k[n]]);
+ ["Punish","Defense"].forEach(n=>{if(k[n]&&!m.sections[n])out.push([n,[],k[n]])});
+ const order=["Punish","Defense"];
+ return out.sort((a,b)=>{const ia=order.indexOf(a[0]),ib=order.indexOf(b[0]);return (ia<0?9:ia)-(ib<0?9:ib)});
+}
+document.addEventListener("click",e=>{const b=e.target.closest("[data-mu]");if(b){S.mu=b.dataset.mu;save();render()}
+ const sm=e.target.closest("[data-setmode]");if(sm){S.mode=sm.dataset.setmode;save();render()}});
+
+function vPlayers(){
+ return `<div class="sec"><h2>Scouting</h2><p class="muted">Habits pulled from your VOD reviews and sets.</p></div>
+ <input id="psearch" type="search" placeholder="Search player or character" aria-label="Search players">
+ <div class="panel" id="plist">${playersHTML("")}</div>`;
+}
+function playersHTML(f){
+ f=f.toLowerCase();
+ const list=PLAYERS.filter(p=>(p.n+" "+p.c).toLowerCase().includes(f));
+ if(!list.length)return `<p class="empty">No player matches “${esc(f)}”.</p>`;
+ return list.map(p=>`<details><summary><span>${p.n} <span class="tag">${p.c}</span></span></summary><div><ul>${p.b.map(x=>`<li>${x}</li>`).join("")}</ul></div></details>`).join("");
+}
+document.addEventListener("input",e=>{if(e.target.id==="psearch")$("#plist").innerHTML=playersHTML(e.target.value)});
+
+function dayMins(d){return Object.values(S.log[d]||{}).reduce((a,b)=>a+b,0)}
+function streak(){
+ let n=0;const d=new Date();if(!dayMins(today()))d.setDate(d.getDate()-1);
+ for(;;){const k=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");if(dayMins(k)>0){n++;d.setDate(d.getDate()-1)}else break}
+ return n;
+}
+function weekMins(){let t=0;const d=new Date();for(let i=0;i<7;i++){const k=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");t+=dayMins(k);d.setDate(d.getDate()-1)}return t}
+function fmt(ms){const s=Math.floor(ms/1000);return String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0")}
+function vDrill(){
+ const td=S.log[today()]||{};const st=streak();
+ const running=!!S.timer;const el=running?Date.now()-S.timer:0;
+ return `<div class="sec"><h2>Today's session</h2><p class="muted">45 min UnclePunch · 30–45 min unranked implementing · VOD review. Have a goal; don't play mindlessly for hours.</p></div>
+ <div class="stat3">
+  <div><small>Today</small><span class="pct">${dayMins(today())}</span><small>min</small></div>
+  <div><small>Streak</small><span class="pct">${st}</span><small>days</small></div>
+  <div><small>Earned</small><span class="pct">$${st*5}</span><small>$5 / day</small></div>
+ </div>
+ <div class="panel"><h3>Timer</h3><div class="timer">
+  <span class="clock" id="clock">${fmt(el)}</span>
+  <div style="flex:1;min-width:170px;display:flex;flex-direction:column;gap:8px">
+   <select id="drillSel" aria-label="Drill to log">${DRILLS.map(d=>`<option value="${d.id}" ${S.drill===d.id?"selected":""}>${d.t}</option>`).join("")}</select>
+   <button class="btn" type="button" id="tBtn">${running?"Stop and log":"Start"}</button>
+  </div></div></div>
+ <div class="panel"><h3>What am I grinding?</h3>${DRILLS.map(d=>`<div class="drill"><div class="t"><b>${d.t}</b><span class="muted">${d.d}</span></div><div class="m"><span class="pct">${td[d.id]||0}</span><div class="muted" style="font-size:12px">min</div><div class="row" style="gap:4px;margin-top:4px"><button class="btn ghost small" type="button" data-add="${d.id}" data-v="-5" aria-label="Remove 5 minutes from ${d.t}">−5</button><button class="btn ghost small" type="button" data-add="${d.id}" data-v="5" aria-label="Add 5 minutes to ${d.t}">+5</button></div></div></div>`).join("")}</div>
+ <p class="muted" style="font-size:13px">Last 7 days: <b>${weekMins()} min</b></p>`;
+}
+document.addEventListener("click",e=>{
+ const a=e.target.closest("[data-add]");
+ if(a){const d=today();S.log[d]=S.log[d]||{};S.log[d][a.dataset.add]=Math.max(0,(S.log[d][a.dataset.add]||0)+ +a.dataset.v);save();render()}
+ if(e.target.id==="tBtn"){
+  if(S.timer){const m=Math.round((Date.now()-S.timer)/60000);S.timer=null;const d=today();S.log[d]=S.log[d]||{};
+   if(m>0){S.log[d][S.drill]=(S.log[d][S.drill]||0)+m;toast(`Logged ${m} min`)}else toast("Under a minute, not logged");}
+  else S.timer=Date.now();
+  save();render();
+ }
+});
+document.addEventListener("change",e=>{if(e.target.id==="drillSel"){S.drill=e.target.value;save()}});
+setInterval(()=>{const c=$("#clock");if(c&&S.timer)c.textContent=fmt(Date.now()-S.timer)},500);
+
+let draft=null;
+function newDraft(){return{mu:S.mu,opp:"",result:"W",event:"",opk:"",nw:"",dpo:"",next:"",elements:MU[S.mu].plan.map(t=>({t,r:""}))}}
+function vReview(){
+ if(!draft)draft=newDraft();
+ const rs=S.reviews.slice().sort((a,b)=>b.date.localeCompare(a.date));
+ return `<div class="sec"><h2>Set review</h2><p class="muted">Play the BO5 on your plan, rate each piece, write the next version. Red = still a problem, yellow = improving, green = done.</p></div>
+ <div class="panel sec">
+  <div class="row">
+   <label>Opponent<input id="r_opp" value="${esc(draft.opp)}" placeholder="Tag"></label>
+   <label>Character<select id="r_mu">${Object.entries(MU).map(([k,v])=>`<option value="${k}" ${draft.mu===k?"selected":""}>${v.name}</option>`).join("")}</select></label>
+  </div>
+  <div class="row">
+   <label>Event<input id="r_event" value="${esc(draft.event)}" placeholder="Ranked, local, bracket round"></label>
+   <label>Result<select id="r_res"><option value="W" ${draft.result==="W"?"selected":""}>Win</option><option value="L" ${draft.result==="L"?"selected":""}>Loss</option></select></label>
+  </div>
+  <div><h3 style="margin-top:6px">Gameplan pieces</h3>${draft.elements.map((el,i)=>`<div class="rate"><span>${esc(el.t)}</span><button class="dot" type="button" data-rate="${i}" data-r="${el.r}">${el.r?el.r:"Rate"}</button></div>`).join("")}</div>
+  <div><h3 style="margin-top:6px">From luckystats</h3><div class="row">
+   <label>Openings / kill<input id="r_opk" inputmode="decimal" value="${esc(draft.opk)}" placeholder="4.2"></label>
+   <label>Neutral win %<input id="r_nw" inputmode="decimal" value="${esc(draft.nw)}" placeholder="52"></label>
+   <label>Damage / opening<input id="r_dpo" inputmode="decimal" value="${esc(draft.dpo)}" placeholder="18.5"></label>
+  </div></div>
+  <label>Next gameplan change<textarea id="r_next" placeholder="One or two things to try next set">${esc(draft.next)}</textarea></label>
+  <div class="row"><button class="btn" type="button" id="r_save">Save review</button></div>
+ </div>
+ <div class="panel"><h3>Openings per kill · lower is better</h3>${trend(rs)}</div>
+ <div class="panel"><h3>History</h3><div class="hist">${rs.length?rs.map(r=>`<div class="h">
+   <div class="row" style="align-items:baseline;gap:8px"><b style="flex:0 1 auto">${esc(r.opp||"Unnamed")}</b><span class="tag" style="flex:none">${MU[r.mu]?.name||""}</span><span class="res-${r.result}" style="flex:none">${r.result}</span><span class="muted" style="flex:1;text-align:right;font-size:13px">${esc(r.date)}</span></div>
+   ${r.event?`<span class="muted" style="font-size:13px">${esc(r.event)}${r.fromNotes?" · from your notes":""}</span>`:""}
+   <div class="pips">${r.elements.filter(x=>x.r).map(x=>`<i class="${x.r}" title="${esc(x.t)}"></i>`).join("")}</div>
+   ${r.opk?`<span style="font-size:13px">OPK <b>${esc(r.opk)}</b>${r.nw?` · neutral ${esc(r.nw)}%`:""}${r.dpo?` · ${esc(r.dpo)} dmg/opening`:""}</span>`:""}
+   ${r.next?`<p style="font-size:14px">${esc(r.next)}</p>`:""}
+   <div><button class="btn ghost small" type="button" data-del="${r.id}">Delete</button></div></div>`).join(""):`<p class="empty">No reviews yet.</p>`}</div></div>
+ <p class="muted" style="font-size:13px">Your profile: <a href="https://luckystats.gg/player/120" target="_blank" rel="noopener" style="color:var(--accent)">luckystats.gg/player/120</a> · <a href="https://luckystats.gg/opk" target="_blank" rel="noopener" style="color:var(--accent)">OPK leaderboard</a></p>`;
+}
+function trend(rs){
+ const pts=rs.filter(r=>r.opk!==""&&!isNaN(+r.opk)).sort((a,b)=>a.date.localeCompare(b.date)).slice(-12);
+ if(pts.length<2)return `<p class="empty">Log OPK from luckystats on two or more sets to see your trend here.</p>`;
+ const W=320,H=120,pl=28,pr=10,pt=10,pb=22;const v=pts.map(p=>+p.opk);
+ let lo=Math.floor(Math.min(...v)),hi=Math.ceil(Math.max(...v));if(lo===hi){lo--;hi++}
+ const x=i=>pl+i*(W-pl-pr)/(pts.length-1),y=val=>pt+(hi-val)*(H-pt-pb)/(hi-lo);
+ const line=pts.map((p,i)=>`${x(i)},${y(+p.opk)}`).join(" ");
+ const mid=(lo+hi)/2;
+ return `<svg class="trend" viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Openings per kill over recent sets">
+  ${[hi,mid,lo].map(t=>`<line class="gr" x1="${pl}" x2="${W-pr}" y1="${y(t)}" y2="${y(t)}"/><text x="${pl-6}" y="${y(t)+3}" text-anchor="end">${+t.toFixed(1)}</text>`).join("")}
+  <polygon class="ar" points="${x(0)},${H-pb} ${line} ${x(pts.length-1)},${H-pb}"/>
+  <polyline class="ln" points="${line}"/>
+  ${pts.map((p,i)=>`<circle class="${i===pts.length-1?"last":""}" cx="${x(i)}" cy="${y(+p.opk)}" r="3.5"/>`).join("")}
+  <text x="${pl}" y="${H-6}">${esc(pts[0].date.slice(5))}</text><text x="${W-pr}" y="${H-6}" text-anchor="end">${esc(pts.at(-1).date.slice(5))}</text>
+ </svg>`;
+}
+document.addEventListener("input",e=>{
+ if(!draft)return;const m={r_opp:"opp",r_event:"event",r_opk:"opk",r_nw:"nw",r_dpo:"dpo",r_next:"next"}[e.target.id];
+ if(m)draft[m]=e.target.value;
+});
+document.addEventListener("change",e=>{
+ if(!draft)return;
+ if(e.target.id==="r_res")draft.result=e.target.value;
+ if(e.target.id==="r_mu"){draft.mu=e.target.value;draft.elements=MU[draft.mu].plan.map(t=>({t,r:""}));render()}
+});
+document.addEventListener("click",e=>{
+ const r=e.target.closest("[data-rate]");
+ if(r){const o=["","red","yellow","green"];const el=draft.elements[+r.dataset.rate];el.r=o[(o.indexOf(el.r)+1)%4];r.dataset.r=el.r;r.textContent=el.r||"Rate"}
+ if(e.target.id==="r_save"){
+  S.reviews.push({id:"r"+Date.now(),date:today(),opp:draft.opp.trim(),mu:draft.mu,result:draft.result,event:draft.event.trim(),opk:draft.opk.trim(),nw:draft.nw.trim(),dpo:draft.dpo.trim(),next:draft.next.trim(),elements:draft.elements});
+  draft=null;save();render();toast("Review saved");
+ }
+ const d=e.target.closest("[data-del]");
+ if(d){
+  if(d.dataset.confirm){S.reviews=S.reviews.filter(x=>x.id!==d.dataset.del);save();render();toast("Review deleted")}
+  else{d.dataset.confirm="1";d.textContent="Tap again to delete"}
+ }
+});
+
+function vRef(){
+ const kp=(rows)=>`<div class="scroll"><table><thead><tr><th>Move</th><th>Where</th><th class="n">No DI</th><th class="n">DI in</th><th class="n">DI out</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td>${r.slice(2).map(v=>`<td class="n"><span class="pct">${v}%</span></td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+ return `<div class="sec"><h2>Reference</h2><p class="muted">Numbers and reads from your notes.</p></div>
+ <div class="panel"><h3>Techchase read · Fox</h3><div class="tc"><b>See tail</b><span>Tech away</span><b>Flip</b><span>Tech in place</span><b>No flip</b><span>Tech in</span><b>Green flash</b><span>Missed tech</span></div></div>
+ <div class="panel"><h3>Tipper dsmash at ledge · guaranteed kill</h3><div class="scroll"><table><tbody>
+  <tr><td>Marth</td><td class="n"><span class="pct">85%</span></td></tr><tr><td>Sheik</td><td class="n"><span class="pct">88%</span></td></tr><tr><td>Falcon</td><td class="n"><span class="pct">111%</span></td></tr></tbody></table></div></div>
+ <div class="panel"><h3>Percent thresholds</h3><div class="scroll"><table><tbody>
+  <tr><td>Fox: b-throw covers all RTC until</td><td class="n"><span class="pct">7%</span></td></tr>
+  <tr><td>Fox: ASDI down tech side-B until</td><td class="n"><span class="pct">65%</span></td></tr>
+  <tr><td>Fox: jab doesn't tumble until</td><td class="n"><span class="pct">130%</span></td></tr>
+  <tr><td>Sheik: tipper fair knocks down from</td><td class="n"><span class="pct">~20%</span></td></tr>
+  <tr><td>Sheik: up throw → up tilt true</td><td class="n"><span class="pct">22–30%</span></td></tr>
+  <tr><td>Falcon: ASDI down up air until</td><td class="n"><span class="pct">38%</span></td></tr>
+  <tr><td>Falcon: ASDI down gentleman until</td><td class="n"><span class="pct">48%</span></td></tr>
+  <tr><td>Falcon: clean up air no knockdown until</td><td class="n"><span class="pct">69%</span></td></tr>
+  <tr><td>Falcon: CC nair until</td><td class="n"><span class="pct">~85%</span></td></tr>
+  <tr><td>ICs: CC their SH up air until</td><td class="n"><span class="pct">25%</span></td></tr>
+  <tr><td>Puff: f-throw WD f-smash from</td><td class="n"><span class="pct">~76%</span></td></tr>
+ </tbody></table></div></div>
+ <div class="panel"><h3>Frame data</h3><ul>
+  <li>Dash grab is unreactable inside roughly 14 frames</li>
+  <li>Falcon stomp is −3 on shield, knee −1</li>
+  <li>Tipper fair on both ICs is −7, −14 if you hit one then the other</li>
+  <li>Fox nair has 7 frames of landing lag</li>
+  <li>Sheik dtilt: frames 8–28 inactive and not actionable</li>
+  <li>ASDI down: actionable on the fourth frame no matter what</li>
+ </ul></div>
+ <div class="panel"><h3>Sheik down throw: Marth DIs to plat from</h3><div class="scroll"><table><thead><tr><th>Stage</th><th class="n">Sheik near P1</th><th class="n">Near P4</th></tr></thead><tbody>
+  <tr><td>Battlefield</td><td class="n"><span class="pct">3%</span></td><td class="n"><span class="pct">6%</span></td></tr>
+  <tr><td>Dreamland</td><td class="n"><span class="pct">32%</span></td><td class="n"><span class="pct">34%</span></td></tr>
+  <tr><td>Yoshi's</td><td class="n"><span class="pct">0%</span></td><td class="n"><span class="pct">0%</span></td></tr>
+  <tr><td>Stadium</td><td class="n"><span class="pct">0%</span></td><td class="n"><span class="pct">0%</span></td></tr></tbody></table></div></div>
+ <div class="panel">
+  <details open><summary>ICs kill % · Dreamland</summary><div>${kp([["Utilt top tipper","Side plat",120,112,144],["Utilt reverse","Center",98,100,107],["Upair tip","Top plat",139,146,146],["Upair tip","Side plat",150,158,158]])}</div></details>
+  <details><summary>ICs kill % · Fountain</summary><div>${kp([["Utilt top tipper","Side plat",159,167,167],["Utilt reverse","Center",123,126,122],["Dsmash","Center",76,70,72]])}</div></details>
+  <details><summary>ICs kill % · Stadium</summary><div>${kp([["Utilt top tipper","Side plat",109,101,122],["Utilt reverse","Center",103,105,111],["Dsmash","Center",70,65,85]])}</div></details>
+ </div>
+ <div class="panel"><h3>Writing a gameplan</h3><ul>
+  <li><b>Theme:</b> a few general macro ideas you can hold in your head mid-set</li>
+  <li><b>Specific where it matters:</b> one or two setups for the big openings</li>
+  <li><b>Low % / High %:</b> based on your percent, and how their options change as it rises</li>
+  <li>Play the BO5, rate each piece on VOD, rewrite, repeat</li>
+ </ul></div>`;
+}
+
+function render(){
+ renderTabs();renderMode();
+ const v={plan:vPlan,players:vPlayers,drill:vDrill,review:vReview,ref:vRef}[S.tab]||vPlan;
+ $("#main").innerHTML=`<div class="view sec" style="gap:16px">${v()}</div>`;
+}
+render();
+</script>
+
+<script>
+if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}))}
+</script>
+</body>
+</html>
